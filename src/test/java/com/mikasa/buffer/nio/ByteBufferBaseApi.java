@@ -3,8 +3,13 @@ package com.mikasa.buffer.nio;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channel;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -81,7 +86,42 @@ public class ByteBufferBaseApi {
         ByteBuffer buffer1 = StandardCharsets.UTF_8.encode("hello");
         log.info("buffer1:{}", buffer1);
 
+    }
 
+    /**
+     * 读到多个buffer中
+     */
+    @Test
+    public void ScatteringReads() {
+        try (FileChannel channel= new RandomAccessFile("data.txt","r").getChannel()){
+            ByteBuffer b1 = ByteBuffer.allocate(3);
+            ByteBuffer b2 = ByteBuffer.allocate(3);
+            ByteBuffer b3 = ByteBuffer.allocate(5);
+            channel.read(new ByteBuffer[]{b1, b2, b3});
+            b1.flip();
+            b2.flip();
+            b3.flip();
+            log.info("b1:{}", StandardCharsets.UTF_8.decode(b1));
+            log.info("b2:{}", StandardCharsets.UTF_8.decode(b2));
+            log.info("b3:{}", StandardCharsets.UTF_8.decode(b3));
 
+        } catch (IOException e) {
+        }
+    }
+
+    /**
+     * 批量写 多个buffer
+     */
+    @Test
+    public void gatheringWrite() {
+        ByteBuffer b1 = StandardCharsets.UTF_8.encode("hello");
+        ByteBuffer b2 = StandardCharsets.UTF_8.encode("world");
+        ByteBuffer b3 = StandardCharsets.UTF_8.encode("屎壳郎");
+
+        try (FileChannel channel = new RandomAccessFile("data1.txt", "rw").getChannel()) {
+            channel.write(new ByteBuffer[]{b1, b2, b3});
+
+        } catch (IOException e) {
+        }
     }
 }
