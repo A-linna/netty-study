@@ -1,4 +1,4 @@
-package com.mikasa.buffer.nio;
+package com.mikasa.nio.buffer;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
