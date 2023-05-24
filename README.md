@@ -164,7 +164,7 @@ compact()方法将所有未读的数据拷贝到Buffer起始处。然后将posit
 问题点：线程一直在循环，当没有客户端连接以及写数据的时候，线程也在占用cpu资源。
 
 <h3>4.selector</h3>
-===
+
 ```agsl
      ServerSocketChannel ssc = ServerSocketChannel.open();
         ssc.bind(new InetSocketAddress("localhost", 8888));
