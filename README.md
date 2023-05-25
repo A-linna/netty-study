@@ -105,10 +105,12 @@ compact()方法将所有未读的数据拷贝到Buffer起始处。然后将posit
 
 <h4>mark()与reset()方法</h4>
 通过调用Buffer.mark()方法，可以标记Buffer中的一个特定position。之后可以通过调用Buffer.reset()方法恢复到这个position。
+- - -
 
-##3. channel网络编程
 
-###3.1 阻塞模式下服务器代码
+### 3. channel网络编程
+
+####3.1 阻塞模式下服务器代码
 ```
 		ByteBuffer buffer = ByteBuffer.allocate(512);
         //1 获取一个ServerSocketChannel
