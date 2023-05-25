@@ -30,7 +30,7 @@ channel是一个读写数据的双向通道，可以从channel将数据读到buf
     selector能够检测一到多个NIO通道，并能够知晓channel是否为诸如读写事件做好准备 的组件。这样，一个单独的线程可以管理多个channel，从而管理多个网络连接
 
 
-###2. ByteBuffer
+### 2. ByteBuffer
 #### 2.1 ByteBuffer使用方法
 <ol>
 <li>向buffer写入数据，例如调用channel.read(buffer) </li>
