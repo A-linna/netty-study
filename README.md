@@ -150,17 +150,15 @@ ByteBuffer buffer = ByteBuffer.allocate(512);
 ```
 问题点：线程一直在循环，当没有客户端连接以及写数据的时候，线程也在占用cpu资源。
 
-<h3>4.selector</h3>
+###4.selector
 多路复用：
     单线程配合selector完成对多个channel可读写事件的监控，称之为多路复用
-    <ul>
-        <li>多路复用仅针对网络io，文件io没法使用</li>
-        <li>如果不使用selector的非阻塞模式，线程大部分时间都在做无用功。而selector能保证：</li>
-            <ul>
-                <li>有可连接事件才去连接</li>
-                 <li>有可读事件才去读取</li>
-                 <li>有可写事件才去写入，限于网络传输能力，channel未必时时可写，一旦channel可写 会触发channel的可写事件</li></ul>
-    </ul>
+
+- 	多路复用仅针对网络io，文件io没法使用
+-	如果不使用selector的非阻塞模式，线程大部分时间都在做无用功。而selector能保证：
+    1.有可连接事件才去连接
+	2.有可读事件才去读取
+ 	3.有可写事件才去写入，限于网络传输能力，channel未必时时可写，一旦channel可写 会触发channel的可写事件
 ```java
     ServerSocketChannel ssc = ServerSocketChannel.open();
         ssc.bind(new InetSocketAddress("localhost", 8888));
