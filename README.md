@@ -148,7 +148,10 @@ compact()方法将所有未读的数据拷贝到Buffer起始处。然后将posit
 ```
 问题点：线程一直在循环，当没有客户端连接以及写数据的时候，线程也在占用cpu资源。
 
-##4.selector
+
+- - -
+
+###4.selector
 多路复用：
     单线程配合selector完成对多个channel可读写事件的监控，称之为多路复用
 
@@ -206,7 +209,10 @@ compact()方法将所有未读的数据拷贝到Buffer起始处。然后将posit
  selector会维护selectionKey的set集合。每次处理完事件，selector不会主动删除，处理完事件后 需要主动删除。
  客户端主动或中断 导致断开连接的 服务端会收到一个read事件，主动断开连接的 read放读取到的字节数为-1. 需要调用canal来取消事件
 
-##5文件零拷贝
+- - -
+
+
+###5.文件零拷贝
 ```java
 	RandomAccessFile file=new RandomAccessFile(new File("/home/xxx.txt"),"r");
 	byte[] buf=new byte[(int)file.length];
