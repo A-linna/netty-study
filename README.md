@@ -18,12 +18,12 @@ nio编程包含三个组件 channel、buffer、selector
     buffer用来缓冲读写数据，常见的buffer有：
     <ul>
          <li>
-            ByteBuffer 
+            ByteBuffer
              <ul>
                   <li>MappedByteBuffer</li>
                   <li>DirectByteBuffer</li>
                  <li>HeapByteBuffer</li>
-        </ul>
+        	</ul>
         </li>
         <li>ShortBuffer</li>
         <li>IntBuffer</li>
@@ -109,10 +109,8 @@ compact()方法将所有未读的数据拷贝到Buffer起始处。然后将posit
 <h3>3. channel网络编程 </h3>
 ==
 <h4>3.1 阻塞模式下服务器代码</h4>
-
-
-```
-		ByteBuffer buffer = ByteBuffer.allocate(512);
+```java
+ByteBuffer buffer = ByteBuffer.allocate(512);
         //1 获取一个ServerSocketChannel
         ServerSocketChannel ssc = ServerSocketChannel.open();
         //2 绑定本机端口
@@ -134,14 +132,12 @@ compact()方法将所有未读的数据拷贝到Buffer起始处。然后将posit
             }
         }
 
-```
-<ul>
-    <li>ServerSocketChannel.accept() 会一直阻塞 直到有客户端连接进来</li>
-    <li>ServerChannel.read() 方法也会一直阻塞，直到读取到数据</li>
- </ul>
 
-<h4>非阻塞修改</h4>
-===
+```
+- ServerSocketChannel.accept() 会一直阻塞 直到有客户端连接进来
+- ServerChannel.read() 方法也会一直阻塞，直到读取到数据
+
+#### 非阻塞修改
 
 ```
     //设置为非阻塞，调用accept方法时 不在阻塞，没有连接 返回null
@@ -173,41 +169,41 @@ compact()方法将所有未读的数据拷贝到Buffer起始处。然后将posit
         Selector selector = Selector.open();
         ssc.register(selector, SelectionKey.OP_ACCEPT, null);
         while (true) {
-        //在没有事件时，该方法会阻塞，
-        //select 在事件未处理时，它不会阻塞，事件发生后 要么处理 要么取消
-        selector.select();
-        Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
-        while (iterator.hasNext()) {
-        SelectionKey selectionKey = iterator.next();
-        log.info("key:{}", selectionKey);
-        //连接事件
-        if (selectionKey.isAcceptable()) {
-        //读事件的channel只会是ServerSocketChannel
-        ServerSocketChannel channel = (ServerSocketChannel) selectionKey.channel();
-        SocketChannel sc = channel.accept();
-        //注册selector 需要设置为非阻塞
-        sc.configureBlocking(false);
-        sc.register(selector, SelectionKey.OP_READ, null);
-        } else if (selectionKey.isReadable()) {
-        try {
-        SocketChannel sc = (SocketChannel) selectionKey.channel();
-        ByteBuffer buffer = ByteBuffer.allocate(124);
-        //如果为-1 表示客户端断开连接
-        int read = sc.read(buffer);
-        if (read == -1) {
-        selectionKey.cancel();
+            //在没有事件时，该方法会阻塞，
+            //select 在事件未处理时，它不会阻塞，事件发生后 要么处理 要么取消
+            selector.select();
+            Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
+            while (iterator.hasNext()) {
+                SelectionKey selectionKey = iterator.next();
+                log.info("key:{}", selectionKey);
+                //连接事件
+                if (selectionKey.isAcceptable()) {
+                    //读事件的channel只会是ServerSocketChannel
+                    ServerSocketChannel channel = (ServerSocketChannel) selectionKey.channel();
+                    SocketChannel sc = channel.accept();
+                    //注册selector 需要设置为非阻塞
+                    sc.configureBlocking(false);
+                    sc.register(selector, SelectionKey.OP_READ, null);
+                } else if (selectionKey.isReadable()) {
+                    try {
+                        SocketChannel sc = (SocketChannel) selectionKey.channel();
+                        ByteBuffer buffer = ByteBuffer.allocate(124);
+                        //如果为-1 表示客户端断开连接
+                        int read = sc.read(buffer);
+                        if (read == -1) {
+                            selectionKey.cancel();
+                        }
+                        buffer.flip();
+                        log.info("readMessage:{}", StandardCharsets.UTF_8.decode(buffer));
+                    } catch (IOException e) {
+                        log.error("e:", e);
+                        selectionKey.cancel();
+                    }
+                }
+                iterator.remove();
+            }
         }
-        buffer.flip();
-        log.info("readMessage:{}", StandardCharsets.UTF_8.decode(buffer));
-        } catch (IOException e) {
-        log.error("e:", e);
-        selectionKey.cancel();
-        }
-        }
-        iterator.remove();
-        }
-        }
-        }
+    }
 ```
 需要将channel注册到selector上，返回一个selectionKey，设置这个key关心的事件。
 selector会维护selectionKey的set集合。每次处理完事件，selector不会主动删除，处理完事件后 需要主动删除。
@@ -257,7 +253,7 @@ java使用directByteBuf 将堆外内存映射到jvm内存来直接访问
 -	只发生了一次用户态与内核态的切换
 -	数据拷贝了3次
 
-进一步优化(Lunix 2.4)
+进一步优化(lunix2.4)
 ![](https://github.com/A-linna/netty-study/blob/main/src/main/resources/image/transfer_2.png?raw=true)
 1.	java调用transferTo方法后，要从java态切换到内核态，使用DMA将数据读取到内核缓冲区，不会使用CPU
 2.	只会将一些offset和length信息拷贝到socket缓冲区，几乎无消耗
