@@ -14,7 +14,7 @@ channel是一个读写数据的双向通道，可以从channel将数据读到buf
 
 2.buffer
     buffer用来缓冲读写数据，常见的buffer有：
-     2.1ByteBuffer
+     2.1 ByteBuffer
              <ul>
                   <li>MappedByteBuffer</li>
                   <li>DirectByteBuffer</li>
