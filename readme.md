@@ -143,7 +143,6 @@ compact()方法将所有未读的数据拷贝到Buffer起始处。然后将posit
         }
     }
 ```
-
  <ul>
     <li>ServerSocketChannel.accept() 会一直阻塞 直到有客户端连接进来</li>
     <li>ServerChannel.read() 方法也会一直阻塞，直到读取到数据</li>
@@ -165,14 +164,14 @@ compact()方法将所有未读的数据拷贝到Buffer起始处。然后将posit
 
 <h3>4.selector</h3>
 ===
-```agsl
+
+```
      ServerSocketChannel ssc = ServerSocketChannel.open();
         ssc.bind(new InetSocketAddress("localhost", 8888));
         //注册selector 需要设置为非阻塞
         ssc.configureBlocking(false);
         Selector selector = Selector.open();
-        SelectionKey sscKey = ssc.register(selector, 0, null);
-        sscKey.interestOps(SelectionKey.OP_ACCEPT);
+        SelectionKey sscKey = ssc.register(selector, SelectionKey.OP_ACCEPT, null);
         while (true) {
             //在没有事件时，该方法会阻塞，
             //select 在事件未处理时，它不会阻塞，事件发生后 要么处理 要么取消
@@ -188,8 +187,7 @@ compact()方法将所有未读的数据拷贝到Buffer起始处。然后将posit
                     SocketChannel sc = channel.accept();
                     //注册selector 需要设置为非阻塞
                     sc.configureBlocking(false);
-                    SelectionKey scKey = sc.register(selector, 0, null);
-                    scKey.interestOps(SelectionKey.OP_READ);
+                    SelectionKey scKey = sc.register(selector, SelectionKey.OP_READ, null);
                 } else if (selectionKey.isReadable()) {
                     try {
                         SocketChannel sc = (SocketChannel) selectionKey.channel();
@@ -214,3 +212,28 @@ compact()方法将所有未读的数据拷贝到Buffer起始处。然后将posit
  需要将channel注册到selector上，返回一个selectionKey，设置这个key关心的事件。
  selector会维护selectionKey的set集合。每次处理完事件，selector不会主动删除，处理完事件后 需要主动删除。
  客户端主动或中断 导致断开连接的 服务端会收到一个read事件，主动断开连接的 read放读取到的字节数为-1. 需要调用canal来取消事件
+ 
+<h4>attachment</h4>
+当channel注册到selector上时，可以传递一个attachment。
+返回的selectionKey 会和channel 以及attachment 绑定
+```
+//将buffer作为一个附件关联到selectionKey上
+SelectionKey selectionKey =channel.register(selector, 0, ByteBuffer.allocate(14))
+//获取关联附件
+ByteBuffer buffer= (ByteBuffer)selectionKey.attachment()
+//关联新的组件
+sscKey.attach(Object)；
+```
+
+```mermaid
+sequenceDiagram
+    participant 磁盘
+    participant 内核缓冲区
+    participant 用户缓冲区
+    participant Socket缓冲区
+    participant 网卡
+  磁盘->内核缓冲区
+  内核缓冲区->用户缓冲区
+  用户缓冲区->Socket缓冲区
+  Socket缓冲区->网卡
+```

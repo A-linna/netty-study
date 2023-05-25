@@ -3,14 +3,14 @@ package com.mikasa.nio.buffer;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channel;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Base64;
 
 /**
  * @author aiLun
@@ -23,7 +23,7 @@ public class ByteBufferBaseApi {
     @Test
     public void allocate() {
         ByteBuffer byteBuffer = ByteBuffer.allocate(10);
-        log.info("byteBuffer:{}",byteBuffer);
+        log.info("byteBuffer:{}", byteBuffer);
     }
 
     @Test
@@ -32,11 +32,32 @@ public class ByteBufferBaseApi {
         buffer.put(new byte[]{'1', '2', '3', '4', '5'});
         log.info("bufferInfo:{}", buffer);
         buffer.flip();
-        log.info("buffer get:{}",(char)buffer.get()); ;
-        log.info("buffer get:{}",(char)buffer.get()); ;
+        log.info("buffer get:{}", (char) buffer.get());
+        ;
+        log.info("buffer get:{}", (char) buffer.get());
+        ;
         log.info("buffer read after info :{}", buffer);
     }
 
+    @Test
+    public void test() {
+        try {
+            RandomAccessFile rw = new RandomAccessFile("/Users/wanglianfeng/Downloads/WX20230525-113354@2x.png", "rw");
+            ByteBuffer buffer = ByteBuffer.allocate(1024*215);
+            rw.getChannel().read(buffer);
+            buffer.flip();
+            byte[] bytes = new byte[buffer.remaining()];
+            buffer.get(bytes, 0, bytes.length);
+            byte[] encode = Base64.getEncoder().encode(bytes);
+            String s = new String(encode);
+            System.out.println(s);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
 
     @Test
     public void rewind() {
@@ -45,13 +66,13 @@ public class ByteBufferBaseApi {
         log.info("bufferInfo:{}", buffer);
         buffer.flip();
         for (int i = 0; i < 4; i++) {
-            log.info("buffer get:{}", (char)buffer.get());
+            log.info("buffer get:{}", (char) buffer.get());
         }
         log.info("bufferGetAfterInfo:{}", buffer);
         buffer.rewind();
         log.info("bufferRewindAfterInfo:{}", buffer);
         for (int i = 0; i < 4; i++) {
-            log.info("buffer get:{}", (char)buffer.get());
+            log.info("buffer get:{}", (char) buffer.get());
         }
         log.info("bufferGetAfterInfo:{}", buffer);
     }
@@ -62,14 +83,14 @@ public class ByteBufferBaseApi {
 
         buffer.put(new byte[]{'a', 'c', 'A', 'E', 'r'});
         buffer.flip();
-        log.info("buffer get:{}",(char)buffer.get());
-        log.info("buffer get:{}",(char)buffer.get());
+        log.info("buffer get:{}", (char) buffer.get());
+        log.info("buffer get:{}", (char) buffer.get());
         buffer.mark();
-        log.info("buffer get:{}",(char)buffer.get());
-        log.info("buffer get:{}",(char)buffer.get());
+        log.info("buffer get:{}", (char) buffer.get());
+        log.info("buffer get:{}", (char) buffer.get());
         buffer.reset();
-        log.info("buffer get:{}",(char)buffer.get());
-        log.info("buffer get:{}",(char)buffer.get());
+        log.info("buffer get:{}", (char) buffer.get());
+        log.info("buffer get:{}", (char) buffer.get());
     }
 
     /**
@@ -80,7 +101,7 @@ public class ByteBufferBaseApi {
         ByteBuffer buffer = ByteBuffer.allocate(16);
         //方式一 还是写模式 需要调用flip
         buffer.put("hello".getBytes());
-        log.info("buffer info:{}",buffer);
+        log.info("buffer info:{}", buffer);
 
         //读模式状态 实际是调用 CharBuffer.wrap(str)
         ByteBuffer buffer1 = StandardCharsets.UTF_8.encode("hello");
@@ -93,7 +114,7 @@ public class ByteBufferBaseApi {
      */
     @Test
     public void ScatteringReads() {
-        try (FileChannel channel= new RandomAccessFile("data.txt","r").getChannel()){
+        try (FileChannel channel = new RandomAccessFile("data.txt", "r").getChannel()) {
             ByteBuffer b1 = ByteBuffer.allocate(3);
             ByteBuffer b2 = ByteBuffer.allocate(3);
             ByteBuffer b3 = ByteBuffer.allocate(5);

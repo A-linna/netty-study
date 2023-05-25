@@ -18,13 +18,13 @@ import java.util.Iterator;
 @Slf4j
 public class SelectorServer {
     public static void main(String[] args) throws IOException {
+
         ServerSocketChannel ssc = ServerSocketChannel.open();
         ssc.bind(new InetSocketAddress("localhost", 8888));
         //注册selector 需要设置为非阻塞
         ssc.configureBlocking(false);
         Selector selector = Selector.open();
-        SelectionKey sscKey = ssc.register(selector, 0, null);
-        sscKey.interestOps(SelectionKey.OP_ACCEPT);
+        ssc.register(selector, SelectionKey.OP_ACCEPT, null);
         while (true) {
             //在没有事件时，该方法会阻塞，
             //select 在事件未处理时，它不会阻塞，事件发生后 要么处理 要么取消
@@ -40,8 +40,7 @@ public class SelectorServer {
                     SocketChannel sc = channel.accept();
                     //注册selector 需要设置为非阻塞
                     sc.configureBlocking(false);
-                    SelectionKey scKey = sc.register(selector, 0, null);
-                    scKey.interestOps(SelectionKey.OP_READ);
+                    sc.register(selector, SelectionKey.OP_READ, null);
                 } else if (selectionKey.isReadable()) {
                     try {
                         SocketChannel sc = (SocketChannel) selectionKey.channel();
@@ -54,7 +53,7 @@ public class SelectorServer {
                         buffer.flip();
                         log.info("readMessage:{}", StandardCharsets.UTF_8.decode(buffer));
                     } catch (IOException e) {
-                       log.error("e:",e);
+                        log.error("e:", e);
                         selectionKey.cancel();
                     }
                 }
