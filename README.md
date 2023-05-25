@@ -106,11 +106,11 @@ compact()方法将所有未读的数据拷贝到Buffer起始处。然后将posit
 <h4>mark()与reset()方法</h4>
 通过调用Buffer.mark()方法，可以标记Buffer中的一个特定position。之后可以通过调用Buffer.reset()方法恢复到这个position。
 
-<h3>3. channel网络编程 </h3>
+###3. channel网络编程
 
-<h4>3.1 阻塞模式下服务器代码</h4>
+####3.1 阻塞模式下服务器代码
 ```
-ByteBuffer buffer = ByteBuffer.allocate(512);
+		ByteBuffer buffer = ByteBuffer.allocate(512);
         //1 获取一个ServerSocketChannel
         ServerSocketChannel ssc = ServerSocketChannel.open();
         //2 绑定本机端口
@@ -131,8 +131,6 @@ ByteBuffer buffer = ByteBuffer.allocate(512);
                 log.info("read after=======");
             }
         }
-
-
 ```
 - ServerSocketChannel.accept() 会一直阻塞 直到有客户端连接进来
 - ServerChannel.read() 方法也会一直阻塞，直到读取到数据
@@ -159,6 +157,7 @@ ByteBuffer buffer = ByteBuffer.allocate(512);
     1.有可连接事件才去连接
 	2.有可读事件才去读取
  	3.有可写事件才去写入，限于网络传输能力，channel未必时时可写，一旦channel可写 会触发channel的可写事件
+
 ```java
     ServerSocketChannel ssc = ServerSocketChannel.open();
         ssc.bind(new InetSocketAddress("localhost", 8888));
