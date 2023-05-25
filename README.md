@@ -4,28 +4,29 @@
 
 nio编程包含三个组件 channel、buffer、selector
 
-1.channel
-channel是一个读写数据的双向通道，可以从channel将数据读到buffer，
-也可以将buffer中的数据写到channel。常见的channel有：
-	1.1 FileChannel : 文件传输通道
-	1.2 DatagramChannel : UDP传输通道
-	1.3 SocketChannel ：TPC传输通道
-	1.4 ServerSocketChannel : TCP传输通道 专用与服务器端
+1. channel
 
-2.buffer
-    buffer用来缓冲读写数据，常见的buffer有：
-     -	ByteBuffer
-            -	MappedByteBuffer
-	    -	DirectByteBuffer   
-            -	HeapByteBuffer	
-     -	ShortBuffer
-     -  IntBuffer
-     -  LongBuffer
-     -  FloatBuffer
-     -  DoubleBuffer
-     -  CharBuffer
+channel是一个读写数据的双向通道，可以从channel将数据读到buffer,也可以将buffer中的数据写到channel。常见的channel有
+- FileChannel : 文件传输通道
+- DatagramChannel : UDP传输通道
+- SocketChannel ：TPC传输通道
+- ServerSocketChannel : TCP传输通道 专用与服务器端
 
-3.Selector
+2. buffer
+
+	buffer用来缓冲读写数据，常见的buffer有：
+- ByteBuffer
+	- MappedByteBuffer
+	- DirectByteBuffer
+	- HeapByteBuffer
+- ShortBuffer
+- IntBuffer
+- LongBuffer
+- FloatBuffer
+- DoubleBuffer
+- CharBuffer
+
+3. Selector
     selector能够检测一到多个NIO通道，并能够知晓channel是否为诸如读写事件做好准备 的组件。这样，一个单独的线程可以管理多个channel，从而管理多个网络连接
 
 
