@@ -107,9 +107,9 @@ compact()方法将所有未读的数据拷贝到Buffer起始处。然后将posit
 通过调用Buffer.mark()方法，可以标记Buffer中的一个特定position。之后可以通过调用Buffer.reset()方法恢复到这个position。
 
 <h3>3. channel网络编程 </h3>
-==
+
 <h4>3.1 阻塞模式下服务器代码</h4>
-```java
+```
 ByteBuffer buffer = ByteBuffer.allocate(512);
         //1 获取一个ServerSocketChannel
         ServerSocketChannel ssc = ServerSocketChannel.open();
@@ -152,15 +152,15 @@ ByteBuffer buffer = ByteBuffer.allocate(512);
 
 <h3>4.selector</h3>
 多路复用：
-单线程配合selector完成对多个channel可读写事件的监控，称之为多路复用
-<ul>
-<li>多路复用仅针对网络io，文件io没法使用</li>
-<li>如果不使用selector的非阻塞模式，线程大部分时间都在做无用功。而selector能保证：</li>
-<ul>
-<li>有可连接事件才去连接</li>
-<li>有可读事件才去读取</li>
-<li>有可写事件才去写入，限于网络传输能力，channel未必时时可写，一旦channel可写 会触发channel的可写事件</li></ul>
-</ul>
+    单线程配合selector完成对多个channel可读写事件的监控，称之为多路复用
+    <ul>
+        <li>多路复用仅针对网络io，文件io没法使用</li>
+        <li>如果不使用selector的非阻塞模式，线程大部分时间都在做无用功。而selector能保证：</li>
+            <ul>
+                <li>有可连接事件才去连接</li>
+                 <li>有可读事件才去读取</li>
+                 <li>有可写事件才去写入，限于网络传输能力，channel未必时时可写，一旦channel可写 会触发channel的可写事件</li></ul>
+    </ul>
 ```java
     ServerSocketChannel ssc = ServerSocketChannel.open();
         ssc.bind(new InetSocketAddress("localhost", 8888));
@@ -205,9 +205,9 @@ ByteBuffer buffer = ByteBuffer.allocate(512);
         }
     }
 ```
-需要将channel注册到selector上，返回一个selectionKey，设置这个key关心的事件。
-selector会维护selectionKey的set集合。每次处理完事件，selector不会主动删除，处理完事件后 需要主动删除。
-客户端主动或中断 导致断开连接的 服务端会收到一个read事件，主动断开连接的 read放读取到的字节数为-1. 需要调用canal来取消事件
+ 需要将channel注册到selector上，返回一个selectionKey，设置这个key关心的事件。
+ selector会维护selectionKey的set集合。每次处理完事件，selector不会主动删除，处理完事件后 需要主动删除。
+ 客户端主动或中断 导致断开连接的 服务端会收到一个read事件，主动断开连接的 read放读取到的字节数为-1. 需要调用canal来取消事件
 
 ### 文件零拷贝
 ```java
@@ -220,7 +220,7 @@ selector会维护selectionKey的set集合。每次处理完事件，selector不�
 ![](https://github.com/A-linna/netty-study/blob/main/src/main/resources/image/fileCopy.png?raw=true)
 
 1. java本身不具备IO读写能力，因此read方法调用后，要从java程序的==**用户态**==切换到==**内核态**==，去调用操作系统的读写能力，将数据读入内核缓冲区。这期间用户线程阻塞，操作系统使用DMA(Direct Memory Access)来实现文件读写，期间也不会使用CPU
-   `DMA可以理解为硬件单元，用来解放CPU完成文件IO`
+	`DMA可以理解为硬件单元，用来解放CPU完成文件IO`
 2. 从==**内核态**==切换到==**用户态**==，将数据从==**内核缓冲区**==读取到==**用户缓冲区**==(即byte[]buf),这期间cpu会参与拷贝，无法利用DMA
 3. 调用write方法，这是将数据从==**用户缓冲区**==(即byte[]buf)写入==**Socket缓冲区**==，cpu会参与拷贝
 4. 接下来要向网卡写数据，这项能力java也不具备，因此又要从用户态切换到内核态，调用操作系统的写能力，使用DMA将socket缓冲区的数据写入网卡，不会使用CPU
@@ -233,13 +233,13 @@ java的IO实际不是物理设备级别的读写,而是缓存的复制，底层�
 通过DirectByteBuf
 - 	ByteBuffer.allocate(10)  HeapByteBuffer 使用的还是java的内存
 - 	ByteBuffer.allocateDirect(10)  DirectByteBuff 使用的是操作系统的内存
-     ![](https://github.com/A-linna/netty-study/blob/main/src/main/resources/image/WX20230525-111215@2x.png?raw=true)
+![](https://github.com/A-linna/netty-study/blob/main/src/main/resources/image/WX20230525-111215@2x.png?raw=true)
 
 java使用directByteBuf 将堆外内存映射到jvm内存来直接访问
 -  这块内存不收jvm垃圾回收影响，因此内存地址固定，有助于IO读写
 -  java中的directByteBuffer对象仅维护了内存的虚引用，内存回收分成2部
-    1. directByteBuffer对象被垃圾回收，将虚引用加入引用队列
-    2. 通过专门线程访问引用队列，根据虚引用释放堆外内存
+	1. directByteBuffer对象被垃圾回收，将虚引用加入引用队列
+	2. 通过专门线程访问引用队列，根据虚引用释放堆外内存
 -	减少了一次数据拷贝，用户态与内核态切换次数没有减少
 
 进一步优化(底层采用lunix2.1后提供的方法sendFile) java对应着2个channel的调用transferTO/transferFrom方法拷贝数据。
