@@ -14,18 +14,16 @@ channel是一个读写数据的双向通道，可以从channel将数据读到buf
 
 2.buffer
     buffer用来缓冲读写数据，常见的buffer有：
-     2.1 ByteBuffer
-             <ul>
-                  <li>MappedByteBuffer</li>
-                  <li>DirectByteBuffer</li>
-                 <li>HeapByteBuffer</li>
-        	</ul>
-        <li>ShortBuffer</li>
-        <li>IntBuffer</li>
-        <li>LongBuffer</li>
-        <li>FloatBuffer</li>
-        <li>DoubleBuffer</li>
-        <li>CharBuffer</li>
+     -	ByteBuffer
+            -	MappedByteBuffer
+	    -	DirectByteBuffer   
+            -	HeapByteBuffer	
+     -	ShortBuffer
+     -  IntBuffer
+     -  LongBuffer
+     -  FloatBuffer
+     -  DoubleBuffer
+     -  CharBuffer
 
 3.Selector
     selector能够检测一到多个NIO通道，并能够知晓channel是否为诸如读写事件做好准备 的组件。这样，一个单独的线程可以管理多个channel，从而管理多个网络连接
