@@ -39,25 +39,6 @@ public class ByteBufferBaseApi {
         log.info("buffer read after info :{}", buffer);
     }
 
-    @Test
-    public void test() {
-        try {
-            RandomAccessFile rw = new RandomAccessFile("/Users/wanglianfeng/Downloads/WX20230525-113354@2x.png", "rw");
-            ByteBuffer buffer = ByteBuffer.allocate(1024*215);
-            rw.getChannel().read(buffer);
-            buffer.flip();
-            byte[] bytes = new byte[buffer.remaining()];
-            buffer.get(bytes, 0, bytes.length);
-            byte[] encode = Base64.getEncoder().encode(bytes);
-            String s = new String(encode);
-            System.out.println(s);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-    }
 
     @Test
     public void rewind() {
