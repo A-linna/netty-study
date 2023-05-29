@@ -1,43 +1,37 @@
-<h2> Nio基础</h2>
+## Nio基础
 
-<h3>1. 三大组件</h3>
+###1. 三大组件
 
 nio编程包含三个组件 channel、buffer、selector
-<ol>
-<li>channel</li>
-    channel是一个读写数据的双向通道，可以从channel将数据读到buffer，
-也可以将buffer中的数据写到channel。
-    常见的channel有：
-    <ul>
-        <li>FileChannel : 文件传输通道</li>
-        <li>DatagramChannel : UDP传输通道</li>
-        <li>SocketChannel ：TPC传输通道 </li>
-        <li>ServerSocketChannel : TCP传输通道 专用与服务器端</li>
-    </ul>
-<li>buffer</li>
-    buffer用来缓冲读写数据，常见的buffer有：
-    <ul>
-         <li>
-            ByteBuffer
-             <ul>
-                  <li>MappedByteBuffer</li>
-                  <li>DirectByteBuffer</li>
-                 <li>HeapByteBuffer</li>
-        	</ul>
-        </li>
-        <li>ShortBuffer</li>
-        <li>IntBuffer</li>
-        <li>LongBuffer</li>
-        <li>FloatBuffer</li>
-        <li>DoubleBuffer</li>
-        <li>CharBuffer</li>
-    </ul>
-    <li>Selector</li>
-    selector能够检测一到多个NIO通道，并能够知晓channel是否为诸如读写事件做好准备 的组件。这样，一个单独的线程可以管理多个channel，从而管理多个网络连接
-</ol>
 
-<h2>2. ByteBuffer</h2>
-<h3> 2.1 ByteBuffer使用方法</h3>
+1. channel
+
+channel是一个读写数据的双向通道，可以从channel将数据读到buffer,也可以将buffer中的数据写到channel。常见的channel有
+- FileChannel : 文件传输通道
+- DatagramChannel : UDP传输通道
+- SocketChannel ：TPC传输通道
+- ServerSocketChannel : TCP传输通道 专用与服务器端
+
+2. buffer
+
+	buffer用来缓冲读写数据，常见的buffer有：
+- ByteBuffer
+	- MappedByteBuffer
+	- DirectByteBuffer
+	- HeapByteBuffer
+- ShortBuffer
+- IntBuffer
+- LongBuffer
+- FloatBuffer
+- DoubleBuffer
+- CharBuffer
+
+3. Selector
+    selector能够检测一到多个NIO通道，并能够知晓channel是否为诸如读写事件做好准备 的组件。这样，一个单独的线程可以管理多个channel，从而管理多个网络连接
+
+
+### 2. ByteBuffer
+#### 2.1 ByteBuffer使用方法
 <ol>
 <li>向buffer写入数据，例如调用channel.read(buffer) </li>
 <li>调用flip()方法切换至读模式 </li>
@@ -68,7 +62,7 @@ limit表示你最多能读到多少数据。因此，当切换Buffer到读模式
 ```
     ByteBuffer buf = ByteBuffer.allocate(48);
 ```
-<h3>2.4 向Buffer中写数据</h3>
+####2.4 向Buffer中写数据
 
 写数据到Buffer有两种方式：
 <ul>
@@ -80,42 +74,37 @@ limit表示你最多能读到多少数据。因此，当切换Buffer到读模式
 flip方法将Buffer从写模式切换到读模式。调用flip()方法会将position设回0，并将limit设置成之前position的值。
 换句话说，position现在用于标记读的位置，limit表示之前写进了多少个byte、char等 —— 现在能读取多少个byte、char等。
 
-<h3>从Buffer中读取数据 </h3>
-==
+####从Buffer中读取数据
 从Buffer读取数据到Channel。
 使用get()方法从Buffer中读取数据。
 
-<h4>rewind()方法</h4>
-==
+####rewind()方法
 Buffer.rewind()将position设回0，所以你可以重读Buffer中的所有数据。limit保持不变，仍然表示能从Buffer中读取多少个元素（byte、char等）
 
-<h4>clear()与compact()方法</h4>
-==
+####clear()与compact()方法
 一旦读完Buffer中的数据，需要让Buffer准备好再次被写入。可以通过clear()或compact()方法来完成。
-
 如果调用的是clear()方法，position将被设回0，limit被设置成 capacity的值。换句话说，Buffer
 被清空了。Buffer中的数据并未清除，只是这些标记告诉我们可以从哪里开始往Buffer里写数据。
-
 如果Buffer中有一些未读的数据，调用clear()方法，数据将“被遗忘”，意味着不再有任何标记会告诉你哪些数据被读过，哪些还没有。
-
 如果Buffer中仍有未读的数据，且后续还需要这些数据，但是此时想要先先写些数据，那么使用compact()方法。
-
 compact()方法将所有未读的数据拷贝到Buffer起始处。然后将position设到最后一个未读元素正后面。limit属性依然像clear()
 方法一样，设置成capacity。现在Buffer准备好写数据了，但是不会覆盖未读的数据。
-
-<h4>mark()与reset()方法</h4>
+####mark()与reset()方法
 通过调用Buffer.mark()方法，可以标记Buffer中的一个特定position。之后可以通过调用Buffer.reset()方法恢复到这个position。
 
-<h3>3. channel网络编程 </h3>
-==
-<h4>3.1 阻塞模式下服务器代码</h4>
-```java
-ByteBuffer buffer = ByteBuffer.allocate(512);
+- - -
+
+
+### 3. channel网络编程
+
+####3.1 阻塞模式下服务器代码
+```
+		ByteBuffer buffer = ByteBuffer.allocate(512);
         //1 获取一个ServerSocketChannel
         ServerSocketChannel ssc = ServerSocketChannel.open();
         //2 绑定本机端口
         ssc.bind(new InetSocketAddress("localhost", 8888));
-       List<SocketChannel> scList = new ArrayList<>();
+       List<SocketChannel> scList = new ArrayList<SocketChannel>();
         while (true) {
             //3监听客户端连接，若没有连接则会阻塞
             log.info("connecting--------");
@@ -131,8 +120,6 @@ ByteBuffer buffer = ByteBuffer.allocate(512);
                 log.info("read after=======");
             }
         }
-
-
 ```
 - ServerSocketChannel.accept() 会一直阻塞 直到有客户端连接进来
 - ServerChannel.read() 方法也会一直阻塞，直到读取到数据
@@ -150,17 +137,19 @@ ByteBuffer buffer = ByteBuffer.allocate(512);
 ```
 问题点：线程一直在循环，当没有客户端连接以及写数据的时候，线程也在占用cpu资源。
 
-<h3>4.selector</h3>
+
+- - -
+
+###4.selector
 多路复用：
-单线程配合selector完成对多个channel可读写事件的监控，称之为多路复用
-<ul>
-<li>多路复用仅针对网络io，文件io没法使用</li>
-<li>如果不使用selector的非阻塞模式，线程大部分时间都在做无用功。而selector能保证：</li>
-<ul>
-<li>有可连接事件才去连接</li>
-<li>有可读事件才去读取</li>
-<li>有可写事件才去写入，限于网络传输能力，channel未必时时可写，一旦channel可写 会触发channel的可写事件</li></ul>
-</ul>
+    单线程配合selector完成对多个channel可读写事件的监控，称之为多路复用
+
+- 	多路复用仅针对网络io，文件io没法使用
+-	如果不使用selector的非阻塞模式，线程大部分时间都在做无用功。而selector能保证：
+    1.有可连接事件才去连接
+	2.有可读事件才去读取
+ 	3.有可写事件才去写入，限于网络传输能力，channel未必时时可写，一旦channel可写 会触发channel的可写事件
+
 ```java
     ServerSocketChannel ssc = ServerSocketChannel.open();
         ssc.bind(new InetSocketAddress("localhost", 8888));
@@ -205,11 +194,14 @@ ByteBuffer buffer = ByteBuffer.allocate(512);
         }
     }
 ```
-需要将channel注册到selector上，返回一个selectionKey，设置这个key关心的事件。
-selector会维护selectionKey的set集合。每次处理完事件，selector不会主动删除，处理完事件后 需要主动删除。
-客户端主动或中断 导致断开连接的 服务端会收到一个read事件，主动断开连接的 read放读取到的字节数为-1. 需要调用canal来取消事件
+ 需要将channel注册到selector上，返回一个selectionKey，设置这个key关心的事件。
+ selector会维护selectionKey的set集合。每次处理完事件，selector不会主动删除，处理完事件后 需要主动删除。
+ 客户端主动或中断 导致断开连接的 服务端会收到一个read事件，主动断开连接的 read放读取到的字节数为-1. 需要调用canal来取消事件
 
-### 文件零拷贝
+- - -
+
+
+###5.文件零拷贝
 ```java
 	RandomAccessFile file=new RandomAccessFile(new File("/home/xxx.txt"),"r");
 	byte[] buf=new byte[(int)file.length];
@@ -220,7 +212,7 @@ selector会维护selectionKey的set集合。每次处理完事件，selector不�
 ![](https://github.com/A-linna/netty-study/blob/main/src/main/resources/image/fileCopy.png?raw=true)
 
 1. java本身不具备IO读写能力，因此read方法调用后，要从java程序的==**用户态**==切换到==**内核态**==，去调用操作系统的读写能力，将数据读入内核缓冲区。这期间用户线程阻塞，操作系统使用DMA(Direct Memory Access)来实现文件读写，期间也不会使用CPU
-   `DMA可以理解为硬件单元，用来解放CPU完成文件IO`
+	`DMA可以理解为硬件单元，用来解放CPU完成文件IO`
 2. 从==**内核态**==切换到==**用户态**==，将数据从==**内核缓冲区**==读取到==**用户缓冲区**==(即byte[]buf),这期间cpu会参与拷贝，无法利用DMA
 3. 调用write方法，这是将数据从==**用户缓冲区**==(即byte[]buf)写入==**Socket缓冲区**==，cpu会参与拷贝
 4. 接下来要向网卡写数据，这项能力java也不具备，因此又要从用户态切换到内核态，调用操作系统的写能力，使用DMA将socket缓冲区的数据写入网卡，不会使用CPU
@@ -233,13 +225,13 @@ java的IO实际不是物理设备级别的读写,而是缓存的复制，底层�
 通过DirectByteBuf
 - 	ByteBuffer.allocate(10)  HeapByteBuffer 使用的还是java的内存
 - 	ByteBuffer.allocateDirect(10)  DirectByteBuff 使用的是操作系统的内存
-     ![](https://github.com/A-linna/netty-study/blob/main/src/main/resources/image/WX20230525-111215@2x.png?raw=true)
+![](https://github.com/A-linna/netty-study/blob/main/src/main/resources/image/WX20230525-111215@2x.png?raw=true)
 
 java使用directByteBuf 将堆外内存映射到jvm内存来直接访问
 -  这块内存不收jvm垃圾回收影响，因此内存地址固定，有助于IO读写
 -  java中的directByteBuffer对象仅维护了内存的虚引用，内存回收分成2部
-    1. directByteBuffer对象被垃圾回收，将虚引用加入引用队列
-    2. 通过专门线程访问引用队列，根据虚引用释放堆外内存
+	1. directByteBuffer对象被垃圾回收，将虚引用加入引用队列
+	2. 通过专门线程访问引用队列，根据虚引用释放堆外内存
 -	减少了一次数据拷贝，用户态与内核态切换次数没有减少
 
 进一步优化(底层采用lunix2.1后提供的方法sendFile) java对应着2个channel的调用transferTO/transferFrom方法拷贝数据。
