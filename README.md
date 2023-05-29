@@ -1,6 +1,6 @@
 ## Nio基础
 
-###1. 三大组件
+### 1. 三大组件
 
 nio编程包含三个组件 channel、buffer、selector
 1. channel
