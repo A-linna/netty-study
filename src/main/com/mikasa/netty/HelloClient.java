@@ -1,11 +1,13 @@
 package com.mikasa.netty;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 
 import java.net.InetSocketAddress;
@@ -16,8 +18,8 @@ import java.net.InetSocketAddress;
  */
 public class HelloClient {
     public static void main(String[] args) throws InterruptedException {
-        //1启动类
-        new Bootstrap()
+
+        ChannelFuture channelFuture = new Bootstrap()
                 //添加eventLoop
                 .group(new NioEventLoopGroup())
                 //选择客户端channel实现
@@ -30,10 +32,19 @@ public class HelloClient {
                         socketChannel.pipeline().addLast(new StringEncoder());
                     }
                 })
-                .connect(new InetSocketAddress("localhost", 9999))
-                .sync()//阻塞方法 直到连接建立
+                //connect 是一个异步非阻塞的方法
+                //main线程发起调用，真正执行连接connect是NioEventGroup中的线程
+                .connect(new InetSocketAddress("localhost", 9999));
+        channelFuture.sync()//阻塞方法 直到连接建立
                 .channel()//代表连接对象
                 .writeAndFlush("hello");
+        channelFuture.addListener(new ChannelFutureListener() {
+            @Override
+            public void operationComplete(ChannelFuture future) throws Exception {
+                Channel channel = future.channel();
+                channel.writeAndFlush("hello");
+            }
+        });
 
     }
 }

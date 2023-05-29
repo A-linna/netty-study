@@ -1,9 +1,8 @@
 ## Nio基础
 
-###1. 三大组件
+### 1. 三大组件
 
 nio编程包含三个组件 channel、buffer、selector
-
 1. channel
 
 channel是一个读写数据的双向通道，可以从channel将数据读到buffer,也可以将buffer中的数据写到channel。常见的channel有
@@ -14,7 +13,7 @@ channel是一个读写数据的双向通道，可以从channel将数据读到buf
 
 2. buffer
 
-	buffer用来缓冲读写数据，常见的buffer有：
+   buffer用来缓冲读写数据，常见的buffer有：
 - ByteBuffer
 	- MappedByteBuffer
 	- DirectByteBuffer
@@ -27,7 +26,9 @@ channel是一个读写数据的双向通道，可以从channel将数据读到buf
 - CharBuffer
 
 3. Selector
-    selector能够检测一到多个NIO通道，并能够知晓channel是否为诸如读写事件做好准备 的组件。这样，一个单独的线程可以管理多个channel，从而管理多个网络连接
+   selector能够检测一到多个NIO通道，并能够知晓channel是否为诸如读写事件做好准备 的组件。这样，一个单独的线程可以管理多个channel，从而管理多个网络连接
+
+_ _ _
 
 
 ### 2. ByteBuffer
@@ -97,7 +98,7 @@ compact()方法将所有未读的数据拷贝到Buffer起始处。然后将posit
 
 ### 3. channel网络编程
 
-####3.1 阻塞模式下服务器代码
+#### 3.1 阻塞模式下服务器代码
 ```
 		ByteBuffer buffer = ByteBuffer.allocate(512);
         //1 获取一个ServerSocketChannel
@@ -140,15 +141,15 @@ compact()方法将所有未读的数据拷贝到Buffer起始处。然后将posit
 
 - - -
 
-###4.selector
+### 4.selector
 多路复用：
-    单线程配合selector完成对多个channel可读写事件的监控，称之为多路复用
+单线程配合selector完成对多个channel可读写事件的监控，称之为多路复用
 
 - 	多路复用仅针对网络io，文件io没法使用
 -	如果不使用selector的非阻塞模式，线程大部分时间都在做无用功。而selector能保证：
-    1.有可连接事件才去连接
-	2.有可读事件才去读取
- 	3.有可写事件才去写入，限于网络传输能力，channel未必时时可写，一旦channel可写 会触发channel的可写事件
+	 1.有可连接事件才去连接
+	 2.有可读事件才去读取
+	 3.有可写事件才去写入，限于网络传输能力，channel未必时时可写，一旦channel可写 会触发channel的可写事件
 
 ```java
     ServerSocketChannel ssc = ServerSocketChannel.open();
@@ -194,14 +195,14 @@ compact()方法将所有未读的数据拷贝到Buffer起始处。然后将posit
         }
     }
 ```
- 需要将channel注册到selector上，返回一个selectionKey，设置这个key关心的事件。
- selector会维护selectionKey的set集合。每次处理完事件，selector不会主动删除，处理完事件后 需要主动删除。
- 客户端主动或中断 导致断开连接的 服务端会收到一个read事件，主动断开连接的 read放读取到的字节数为-1. 需要调用canal来取消事件
+需要将channel注册到selector上，返回一个selectionKey，设置这个key关心的事件。
+selector会维护selectionKey的set集合。每次处理完事件，selector不会主动删除，处理完事件后 需要主动删除。
+客户端主动或中断 导致断开连接的 服务端会收到一个read事件，主动断开连接的 read放读取到的字节数为-1. 需要调用canal来取消事件
 
 - - -
 
 
-###5.文件零拷贝
+### 5.文件零拷贝
 ```java
 	RandomAccessFile file=new RandomAccessFile(new File("/home/xxx.txt"),"r");
 	byte[] buf=new byte[(int)file.length];
@@ -212,7 +213,7 @@ compact()方法将所有未读的数据拷贝到Buffer起始处。然后将posit
 ![](https://github.com/A-linna/netty-study/blob/main/src/main/resources/image/fileCopy.png?raw=true)
 
 1. java本身不具备IO读写能力，因此read方法调用后，要从java程序的==**用户态**==切换到==**内核态**==，去调用操作系统的读写能力，将数据读入内核缓冲区。这期间用户线程阻塞，操作系统使用DMA(Direct Memory Access)来实现文件读写，期间也不会使用CPU
-	`DMA可以理解为硬件单元，用来解放CPU完成文件IO`
+   `DMA可以理解为硬件单元，用来解放CPU完成文件IO`
 2. 从==**内核态**==切换到==**用户态**==，将数据从==**内核缓冲区**==读取到==**用户缓冲区**==(即byte[]buf),这期间cpu会参与拷贝，无法利用DMA
 3. 调用write方法，这是将数据从==**用户缓冲区**==(即byte[]buf)写入==**Socket缓冲区**==，cpu会参与拷贝
 4. 接下来要向网卡写数据，这项能力java也不具备，因此又要从用户态切换到内核态，调用操作系统的写能力，使用DMA将socket缓冲区的数据写入网卡，不会使用CPU
@@ -225,7 +226,7 @@ java的IO实际不是物理设备级别的读写,而是缓存的复制，底层�
 通过DirectByteBuf
 - 	ByteBuffer.allocate(10)  HeapByteBuffer 使用的还是java的内存
 - 	ByteBuffer.allocateDirect(10)  DirectByteBuff 使用的是操作系统的内存
-![](https://github.com/A-linna/netty-study/blob/main/src/main/resources/image/WX20230525-111215@2x.png?raw=true)
+	 ![](https://github.com/A-linna/netty-study/blob/main/src/main/resources/image/WX20230525-111215@2x.png?raw=true)
 
 java使用directByteBuf 将堆外内存映射到jvm内存来直接访问
 -  这块内存不收jvm垃圾回收影响，因此内存地址固定，有助于IO读写
@@ -258,5 +259,167 @@ java使用directByteBuf 将堆外内存映射到jvm内存来直接访问
 - 零拷贝适合小文件传输
 
 
+* * *
+## netty入门
+### 1概述：
+#### 1.1netty是什么？
+  	netty是一个异步的，基于事件驱动的网络框架，用于快速开发可维护，高性能的网络服务器和客户端
+#### 2.入门案例：
+server:
+```java
+  //1.启动器，负责组装netty组件，启动服务器
+        new ServerBootstrap()
+                //2.BoosEventLoop,WorkEventLoop(selector,thread) group 组
+                .group(new NioEventLoopGroup())
+                //3.选择ServerSocketChannel的实现
+                .channel(NioServerSocketChannel.class)
+                //4.boos 负责连接，work(child)负责读写，决定了word(child)能执行哪些操作(handler)
+                .childHandler(
+                        //5.channel代表和客户端进行数据读写的通道，Initializer初始化，负责添加别的handler
+                        //连接建立后会执行initChannel方法
+                        new ChannelInitializer<NioSocketChannel>() {
+                            @Override
+                            protected void initChannel(NioSocketChannel socketChannel) throws Exception {
+                                socketChannel.pipeline().addLast(new StringDecoder());//将byteBuf转换为字符串
+                                socketChannel.pipeline().addLast(new ChannelInboundHandlerAdapter() {//自定义handler
+                                    @Override
+                                    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+                                        log.info("message:{}", msg);
+                                    }
+                                });
+                            }
+                            //6 绑定端口
+                        }).bind(9999);
+
+```
+client:
+```java
+ //1启动类
+        new Bootstrap()
+                //添加eventLoop
+                .group(new NioEventLoopGroup())
+                //选择客户端channel实现
+                .channel(NioSocketChannel.class)
+                //添加处理器
+                .handler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    //在连接建立后调用
+                    protected void initChannel(SocketChannel socketChannel) throws Exception {
+                        socketChannel.pipeline().addLast(new StringEncoder());
+                    }
+                })
+                .connect(new InetSocketAddress("localhost", 8888))
+                .sync()//阻塞方法 直到连接建立
+                .channel()//代表连接对象
+                .writeAndFlush("hello");
+
+```
+-	channel可以理解为数据通道，可以从channel读取数据 或写入channel
+-	msg 可以理解为流动的数据，最开始是输入的byteBuf，经过pipeline的加工，会变成其他类型对象，最后输出又变成byteBuf
+-	handler 可以理解为数据的处理工序
+	 -	工序有多道，合在一起就是pipeline，pipeline负责发布事件传播给每个handler，handler对自己感兴趣的事件进行处理(重写相应事件处理方法)
+	 - handler分为Inbound和outBound两类
+- 把eventLoop理解为处理数据的工人
+	- 工人可以管理多个channel的io操作，并且一旦工人负责了某个channel就要负责到底(绑定)
+	- 工人既可执行io操作，也可以进行任务处理，每位工人有任务队列，队列里可以堆放多个channel的待处理任务，任务分为普通任务、定时任务
+	- 工人按照pipeline顺序，依次按照handler的规划(代码)处理数据，可以为每道工序指定不同的工人
 
 
+### 3 组件
+#### 3.1 EventLoop
+EventLoop本质是一个单线程执行器 (同时维护了一个 Selector)，里面有 run 方法处理 Channel 上源源不断的io 事件。
+它的继承关系比较复杂
+- 一条线是继承自j.u.c.ScheduledExecutorService 因此包含了线程池中所有的方法。
+- 另一条线是继承自 netty 自己的 OrderedEventExecutor提供了 boolean inEventLoop(Thread thread)方法判断一个线程是否属于此 EventLoopo 提供了 parent 方法来看看自己属于哪个 EventLoopGroup
+
+EventLoopGroup 是一组EventLoop，Channel一般会调用EventLoopGroup 的register 方法来绑定其中一个EventLoop，后续这个 Channel上的 io 事件都由此EventLoop 来处理(保证了 io  事件处理时的线程安全)
+-	继承自 netty 自己的 EventExecutorGroup
+	 - 实现了 Iterable 接口提供遍历 EventLoop 的能力
+	 - 另有 next 方法获取集合中下一个 EventLoop
+
+#### 3.2 channel
+**channel** 的主要作用
+-  close0可以用来关闭 channel。
+-  closeFuture0) 用来处理 channel的关闭
+	-   sync 方法作用是同步等待 channel关闭
+	-   而 addListener 方法是异步等待 channel 关闭
+-  pipeline0)方法添加处理器
+-  write0方法将数据写入
+-  writeAndFlush0方法将数据写入并刷出
+
+**channelFeature**
+```
+//2
+ ChannelFuture channelFuture = new Bootstrap()
+                .group(new NioEventLoopGroup())
+                .channel(NioSocketChannel.class)
+                .handler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    protected void initChannel(SocketChannel socketChannel) throws Exception {
+                        socketChannel.pipeline().addLast(new StringEncoder());
+                    }
+                })
+                //1
+                .connect(new InetSocketAddress("localhost", 9999));
+                //2.1
+       			 channelFuture.sync()
+                .channel()
+                .writeAndFlush("hello");
+                //
+              //2.2
+               channelFuture.addListener(new ChannelFutureListener() {
+            	@Override
+           		 public void operationComplete(ChannelFuture future) throws Exception {
+             	   Channel channel = future.channel();
+                	channel.writeAndFlush("hello");
+            }
+        });
+
+    }
+```
+1 connect连接是一个异步非阻塞方法，main线程发起调用，真正执行连接的是nioEventGroup中的线程
+
+2 带有feature、promise的类型都是和异步方法配套使用，用来处理结果
+
+2.1 chanenlFeature.sync(),此方法会阻塞住当前线程，直到nio线程连接建立完毕 能才继续执行。
+
+2.2  channelFuture.addListener 这个方法是提供一个回调方法，当nio线程连接建立完毕后，会执行该listner里的逻辑。
+
+#### 3.3 Feature 、 Promis
+
+首先要说明 netty 中的 Future 与jdk 中的 Future 同名，但是是两个接口，netty的 Future 继承自jdk的Future，而 Promise 又对 netty Future 进行了扩展
+-  jdk Future 只能同步等待任务结束 (或成功、或失败) 才能得到结果
+-  netty Future 可以同步等待任务结束得到结果，也可以异步方式得到结果，但都是要等任务结束
+-  netty Promise 不仅有 netty Future.的功能，而且脱离了任务独立存在，只作为两个线程间传递结果的容器
+
+jdk Feature 常用api
+-	canal 取消任务
+-	isCanaled 任务是否取消
+-	idDone 任务是否完成，无法区分成功or失败
+-	get 获取任务结果，阻塞等待
+
+netty Feature 部分APi
+
+-	getNow 获取任务结果，非阻塞，还未产生结果时返回 null
+-	await 等待任务结束，如果任务失败，不会抛异常，而是通过 isSuccess 判断
+-	sync 等待任务结束，如果任务失败，抛出异常
+-	isSuccess  判断任务是否成功
+-	cause 获取失败信息，非阻塞，如果没有失败，返回null
+-	addLinstener 添加回调，.导步接收结果
+
+Promise Api
+-  setSuccess 设置成功结果
+-  setFailure 设置失败结果
+
+#### 3.4 Handler 、Pipeline
+ChannelHandler 用来处理Channel 上的各种事件，分为入站、出站两种。所有ChannelHandler 被连成一串,就是 Pipeline
+
+-  入站处理器通常是 ChannelInboundHandlerAdapter的子类，主要用来读取客户端数据，写回结果
+-  出站处理器通常是 ChannelOutboundHandlerAdapter 的子类，主要对写回结果进行加工
+
+打个比喻，每个 Channel 是一个产品的加工车间，Pipeline 是车间中的流水线，ChannelHandler 就是流水线上的各道工序，而后面要讲的 BvteBuf 是原材料，经过很多工序的加工: 先经过一道道入站工序，再经过一道道出站工序最终变成产品
+
+入站和出站是相对而言的，对于服务器来说，从客户端发来的数据叫入站，会依次执行Pipeline中head到tail的 inBoundHandler，当服务器向客户端写数据时，会依次执行tail到head的outBoundHandler
+
+ChannelHandlerContext.writeAndFlush()与socketChannel.writeAndFlush的区别是：  
+ChannelHandlerContext会从当前handler往head依次寻找outBoundHandler，而socketChannel的会从tail往head依次找outBoundHandler执行
