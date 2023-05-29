@@ -423,3 +423,70 @@ ChannelHandler 用来处理Channel 上的各种事件，分为入站、出站两
 
 ChannelHandlerContext.writeAndFlush()与socketChannel.writeAndFlush的区别是：  
 ChannelHandlerContext会从当前handler往head依次寻找outBoundHandler，而socketChannel的会从tail往head依次找outBoundHandler执行
+
+#### 3.5 ByteBuf
+是对字节数据的封装
+##### 3.5.1 创建
+`ByteBuf buffer = ByteBufA11ocator .DEFAULT.buffer(10);`
+创建了一个默认的 ByteBuf (池化基于直接内存的 ByteBuf)，初始容量是 10
+```
+PooledUnsafeDirectByteBuf(ridx: 0, widx: 0, cap: 10)
+//初始容量为10，读写指针为0
+
+```
+##### 3.5.2 直接内存、堆内存
+创建池化基于堆的ByteBuf
+` ByteBuf byteBuf = ByteBufAllocator.DEFAULT.heapBuffer();`
+创建池化基于直接内存的ByteBuf
+`ByteBuf byteBuf = ByteBufAllocator.DEFAULT.directBuffer();`
+-  直接内存创建和销毁的代价昂贵，但读写性能高(少一次内存复制)，适合配合池化功能一起用
+-  直接内存对 GC 压力小，因为这部分内存不受JVM 垃圾回收的管理，但也要注意及时主动释放
+
+##### 3.5.3 池化 VS 非池化
+池化的最大意义在于可以重用 ByteBuf，优点有
+-  没有池化，则每次都得创建新的 ByteBuf 实例，这个操作对直接内存代价昂贵，就算是堆内存，也会增加 GC压力
+-  有了池化，则可以重用池中 ByteBuf 实例，并且采用了与 jemalloc 类似的内存分配算法提升分配效率
+-  高并发时，池化功能更节约内存，减少内存溢出的可能  
+  
+  
+池化功能是否开启，可以通过下面的系统环境变量来设置
+`-Dio.netty.allocator .type={unpooledlpooled}`
+-  4.1以后，非 Android 平台默认启用池化实现，Android 平台启用非池化实现
+-  4.1 之前，池化功能还不成熟，默认是非池化实现
+
+##### 3.5.4 组成
+![](https://github.com/A-linna/netty-study/blob/main/src/main/resources/image/byteBuf.png?raw=true)
+
+1. capacity byteByf(容量) 可以容纳的字节数
+``ByteBufAllocator.DEFAULT.buffer(10);//指定容量为10，可以动态扩容``
+2. maxCapacity (最大容量) 容量与最大容量的区域 称为可扩容区域
+``ByteBuf buffer = ByteBufAllocator.DEFAULT.buffer(10,100);//最大容量为100``
+3. 写指针,写指针到容量区域 称为 可写区域
+4. 读指针，读指针到写指针的区域称为 可读区域，已读的部分称为废弃区域
+
+##### 3.5.5 扩容
+容量不够时 会触发扩容  
+扩容规则：  
+-  如果写入后数据大小未超过 512，则选择下一个 16 的整数倍，例如写入后大小为 12，则扩容后 capacity 是16
+-  如果写入后数据大小超过 512，则选择下一个2^n，例如写入后大小为 513，则扩容后 capacity 是2^10=1024 (2^9=512 已经不够了)
+-  扩容不能超过 max capacity 否则会报错
+
+##### 3.5.6 retain、release
+由于 Netty 中有堆外内存的 ByteBuf 实现，堆外内存最好是手动来释放，而不是等 GC 垃圾回收。
+-  UnpooledHeapByteBuf 使用的是JVM 内存，只需等 GC 回收内存即可
+-  UnpooledDirectByteBuf 使用的就是直接内存了，需要特殊的方法来回收内存
+-  PooledBvteBuf 和它的子类使用了池化机制，需要更复杂的规则来回收内存
+> 回收内存的源码实现，请关注下面方法的不同实现
+> protected abstract void dea1locate()  
+
+Netty 这里采用了引用计数法来控制回收内存，每个 ByteBuf都实现了 ReferenceCounted 接口
+- 每个 ByteBuf 对象的初始计数为 1
+- 调用 release 方法计数减 1，如果计数为 0，ByteBuf 内存被回收
+- 调用 retain 方法计数加 1，表示调用者没用完之前，其它 handler 即使调用了 release 也不会造成回收
+- 当计数为 0时，底层内存会被回收，这时即使 ByteBuf 对象还在，其各个方法均无法正常使用
+
+因为 pipeline 的存在，一般需要将BvteBuf 传递给下一个ChannelHandler，如果在 finally中release了，就失去了传递性(当然，如果在这个 ChannelHandler 内这个ByteBuf 已完成了它的使命，那么便无须再传递)
+基本规则是，谁是最后使用者，谁负责 release  
+
+##### 3.6.7 slice
+[零拷贝] 的体现之一，对原始 BvteBuf 进行切片成多个 ByteBuf，切片后的 ByteBuf 并没有发生内存复制，还是使用原始 ByteBuf 的内存，切片后的 ByteBuf 维护独立的 read，write 指针
