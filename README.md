@@ -236,7 +236,7 @@ java使用directByteBuf 将堆外内存映射到jvm内存来直接访问
 -	减少了一次数据拷贝，用户态与内核态切换次数没有减少
 
 进一步优化(底层采用lunix2.1后提供的方法sendFile) java对应着2个channel的调用transferTO/transferFrom方法拷贝数据。
-![avatar][transferTo/transferFrom]
+![](https://github.com/A-linna/netty-study/blob/main/src/main/resources/image/transfer_1.png?raw=true)
 
 1. java调用transferTo方法后，要从java态切换到内核态，使用DMA将数据读入内核缓冲区，不会使用CPU
 2. 数据从内核缓冲区传输到socket缓冲区，cpu会参与拷贝
