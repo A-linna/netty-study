@@ -377,7 +377,10 @@ EventLoopGroup 是一组EventLoop，Channel一般会调用EventLoopGroup 的regi
 
     }
 ```
-1 connect连接是一个异步非阻塞方法，main线程发起调用，真正执行连接的是nioEventGroup中的线程
-2 带有feature、promise的类型都是和异步方法配套使用，用来处理结果
-2.1 chanenlFeature.sync(),此方法会阻塞住当前线程，直到nio线程连接建立完毕 能才继续执行。
-2.2  channelFuture.addListener 这个方法是提供一个回调方法，当nio线程连接建立完毕后，会执行该listner里的逻辑。
+1 connect连接是一个异步非阻塞方法，main线程发起调用，真正执行连接的是nioEventGroup中的线程   
+
+2 带有feature、promise的类型都是和异步方法配套使用，用来处理结果   
+
+2.1 chanenlFeature.sync(),此方法会阻塞住当前线程，直到nio线程连接建立完毕 能才继续执行。   
+
+2.2  channelFuture.addListener 这个方法是提供一个回调方法，当nio线程连接建立完毕后，会执行该listner里的逻辑。  
