@@ -1,6 +1,6 @@
 package com.mikasa.netty.protocol;
 
-import com.mikasa.netty.protocol.message.LoginRequestMessage;
+import com.mikasa.netty.protocol.message.LoginRequestMsg;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -9,6 +9,8 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
 /**
+ * 测试自定义协议
+ *
  * @author aiLun
  * @date 2023/5/30-16:03
  */
@@ -23,7 +25,7 @@ public class TestMessageCodec {
 
                 new MessageCodec());
         //encode
-        LoginRequestMessage message = new LoginRequestMessage("zhangsan", "123345");
+        LoginRequestMsg message = new LoginRequestMsg("zhangsan", "123345");
         channel.writeOutbound(message);
 
         //decode

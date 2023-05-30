@@ -9,7 +9,7 @@ import java.io.Serializable;
  * @date 2023/5/30-15:25
  */
 @Data
-public abstract class Message  implements Serializable {
+public abstract class Msg implements Serializable {
     private int sequenceId;
     private int messageType;
 

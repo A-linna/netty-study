@@ -1,6 +1,6 @@
 package com.mikasa.netty.protocol;
 
-import com.mikasa.netty.protocol.message.Message;
+import com.mikasa.netty.protocol.message.Msg;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageCodec;
@@ -17,9 +17,9 @@ import java.util.List;
  * @date 2023/5/30-15:25
  */
 @Slf4j
-public class MessageCodec extends ByteToMessageCodec<Message> {
+public class MessageCodec extends ByteToMessageCodec<Msg> {
     @Override
-    protected void encode(ChannelHandlerContext ctx, Message msg, ByteBuf out) throws Exception {
+    protected void encode(ChannelHandlerContext ctx, Msg msg, ByteBuf out) throws Exception {
         //1  4个字节的魔数
         out.writeBytes(new byte[]{'a', 'b', 'c', 'd'});
         // 2  1字节的协议版本号
@@ -58,11 +58,11 @@ public class MessageCodec extends ByteToMessageCodec<Message> {
         byte[] bytes = new byte[length];
          in.readBytes(bytes,0,length);
         //jdk序列化
-        Message msg =null;
+        Msg msg =null;
         if (0 == serializableType) {
             ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
             ObjectInputStream ois = new ObjectInputStream(bis);
-             msg = (Message) ois.readObject();
+             msg = (Msg) ois.readObject();
         }
         log.info("magicNum:{},version:{},serializableType:{},messageType:{}," +
                 "sequenceId:{},length:{}", magicNum, version, serializableType, messageType, sequenceId, length);
