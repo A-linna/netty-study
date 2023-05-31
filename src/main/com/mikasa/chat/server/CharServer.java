@@ -1,5 +1,6 @@
 package com.mikasa.chat.server;
 
+import com.mikasa.chat.config.PropertiesConfig;
 import com.mikasa.chat.protocol.MessageCodecSharable;
 import com.mikasa.chat.protocol.ProtocolFrameCodec;
 import com.mikasa.chat.server.handler.*;
@@ -70,7 +71,7 @@ public class CharServer {
                         }
                     });
 
-            ChannelFuture future = bootstrap.bind(8888).sync();
+            ChannelFuture future = bootstrap.bind(PropertiesConfig.getPort()).sync();
             future.channel().closeFuture();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);

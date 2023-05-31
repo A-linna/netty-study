@@ -1,5 +1,6 @@
 package com.mikasa.chat.client;
 
+import com.mikasa.chat.config.PropertiesConfig;
 import com.mikasa.chat.mes.*;
 import com.mikasa.chat.protocol.MessageCodecSharable;
 import com.mikasa.chat.protocol.ProtocolFrameCodec;
@@ -134,7 +135,7 @@ public class CharClient {
                             });
                         }
                     });
-            ChannelFuture future = bootstrap.connect(new InetSocketAddress("localhost", 8888)).sync();
+            ChannelFuture future = bootstrap.connect(new InetSocketAddress("localhost", PropertiesConfig.getPort())).sync();
             future.channel().closeFuture().sync();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
