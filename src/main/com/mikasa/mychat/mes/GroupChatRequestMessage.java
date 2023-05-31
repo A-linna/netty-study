@@ -9,7 +9,7 @@ import lombok.Data;
  */
 @Data
 @AllArgsConstructor
-public class GroupCharRequestMessage extends Message {
+public class GroupChatRequestMessage extends Message {
     //用户名称
     private String username;
     //群名称

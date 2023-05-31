@@ -23,9 +23,9 @@ public abstract class Message implements Serializable {
     protected static final int LOGIN_RESPONSE_MESSAGE = 1;
 
     //单聊请求
-    protected static final int CHAR_REQUEST_MESSAGE = 2;
+    protected static final int CHAT_REQUEST_MESSAGE = 2;
     //单聊响应
-    protected static final int CHAR_RESPONSE_MESSAGE = 3;
+    protected static final int CHAT_RESPONSE_MESSAGE = 3;
 
     //群聊请求
     protected static final int GROUP_CHAR_REQUEST_MESSAGE = 4;
@@ -51,6 +51,9 @@ public abstract class Message implements Serializable {
     protected static final int QUIT_GROUP_REQUEST = 12;
     //退出群聊响应
     protected static final int QUIT_GROUP_RESPONSE = 13;
+
+    protected static final int PING = 14;
+
 
 
 }

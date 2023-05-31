@@ -4,15 +4,15 @@ import com.mikasa.mychat.mes.*;
 import com.mikasa.mychat.protocol.MessageCodecSharable;
 import com.mikasa.mychat.protocol.ProtocolFrameCodec;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelInitializer;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
@@ -47,10 +47,23 @@ public class CharClient {
                             ch.pipeline().addLast(new ProtocolFrameCodec());
                             ch.pipeline().addLast(LOGIN_HANDLER);
                             ch.pipeline().addLast(MESSAGE_CODEC);
+                            //3秒内channel没有写数据 会触发一个IdleState#WRITER_IDLE 事件
+                            ch.pipeline().addLast(new IdleStateHandler(0, 3, 0));
+                            ch.pipeline().addLast(new ChannelDuplexHandler() {
+                                @Override
+                                public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+                                    IdleStateEvent event = (IdleStateEvent) evt;
+                                    if (IdleState.WRITER_IDLE == event.state()) {
+                                        PingMessage pingMessage = new PingMessage();
+                                        ctx.writeAndFlush(pingMessage);
+                                    }
+                                }
+                            });
                             ch.pipeline().addLast(new ChannelInboundHandlerAdapter() {
 
                                 @Override
                                 public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+                                    log.info("{}",msg);
                                     if (msg instanceof LoginResponseMessage) {
                                         LoginResponseMessage loginResponse = (LoginResponseMessage) msg;
                                         if (loginResponse.isSuccess()) {
@@ -82,23 +95,24 @@ public class CharClient {
                                         while (true) {
                                             System.out.println("===============");
                                             System.out.println("send [username] [content]");
-                                            System.out.println("gsend [group name] [content]");
-                                            System.out.println("gcreate [group name] [m1,m2,m3...]");
-                                            System.out.println("gmembers [group name]");
-                                            System.out.println("gjoin [group name]");
-                                            System.out.println("gquit [group name]");
+                                            System.out.println("gSend [group name] [content]");
+                                            System.out.println("gCreate [group name] [m1,m2,m3...]");
+                                            System.out.println("gMembers [group name]");
+                                            System.out.println("gJoin [group name]");
+                                            System.out.println("gQuit [group name]");
                                             System.out.println("quit");
                                             String command = scanner.nextLine();
                                             String[] commandArr = command.split(" ");
                                             switch (commandArr[0]) {
                                                 case "send":
-                                                    ctx.writeAndFlush(new CharRequestMessage(username, commandArr[1], commandArr[2]));
+                                                    ctx.writeAndFlush(new ChatRequestMessage(username, commandArr[1], commandArr[2]));
                                                     break;
                                                 case "gSend":
-                                                    ctx.writeAndFlush(new GroupCharRequestMessage(username, commandArr[1], commandArr[2]));
+                                                    ctx.writeAndFlush(new GroupChatRequestMessage(username, commandArr[1], commandArr[2]));
                                                     break;
                                                 case "gCreate":
                                                     Set<String> members = Arrays.stream(commandArr[2].split(",")).collect(Collectors.toSet());
+                                                    members.add(username);
                                                     ctx.writeAndFlush(new GroupCreateRequstMessage(commandArr[1], members));
                                                     break;
                                                 case "gMembers":

@@ -1,4 +1,4 @@
-## Nio基础
+## 一 Nio基础
 
 ### 1. 三大组件
 
@@ -260,7 +260,7 @@ java使用directByteBuf 将堆外内存映射到jvm内存来直接访问
 
 
 * * *
-## netty入门
+## 二 netty入门
 ### 1概述：
 #### 1.1netty是什么？
   	netty是一个异步的，基于事件驱动的网络框架，用于快速开发可维护，高性能的网络服务器和客户端
@@ -426,7 +426,7 @@ ChannelHandlerContext会从当前handler往head依次寻找outBoundHandler，而
 
 #### 3.5 ByteBuf
 是对字节数据的封装
-##### 3.5.1 创建
+##### 1 创建
 `ByteBuf buffer = ByteBufA11ocator .DEFAULT.buffer(10);`
 创建了一个默认的 ByteBuf (池化基于直接内存的 ByteBuf)，初始容量是 10
 ```
@@ -434,7 +434,7 @@ PooledUnsafeDirectByteBuf(ridx: 0, widx: 0, cap: 10)
 //初始容量为10，读写指针为0
 
 ```
-##### 3.5.2 直接内存、堆内存
+##### 2 直接内存、堆内存
 创建池化基于堆的ByteBuf
 ` ByteBuf byteBuf = ByteBufAllocator.DEFAULT.heapBuffer();`
 创建池化基于直接内存的ByteBuf
@@ -442,7 +442,7 @@ PooledUnsafeDirectByteBuf(ridx: 0, widx: 0, cap: 10)
 -  直接内存创建和销毁的代价昂贵，但读写性能高(少一次内存复制)，适合配合池化功能一起用
 -  直接内存对 GC 压力小，因为这部分内存不受JVM 垃圾回收的管理，但也要注意及时主动释放
 
-##### 3.5.3 池化 VS 非池化
+##### 3 池化 VS 非池化
 池化的最大意义在于可以重用 ByteBuf，优点有
 -  没有池化，则每次都得创建新的 ByteBuf 实例，这个操作对直接内存代价昂贵，就算是堆内存，也会增加 GC压力
 -  有了池化，则可以重用池中 ByteBuf 实例，并且采用了与 jemalloc 类似的内存分配算法提升分配效率
@@ -454,7 +454,7 @@ PooledUnsafeDirectByteBuf(ridx: 0, widx: 0, cap: 10)
 -  4.1以后，非 Android 平台默认启用池化实现，Android 平台启用非池化实现
 -  4.1 之前，池化功能还不成熟，默认是非池化实现
 
-##### 3.5.4 组成
+##### 4 组成
 ![](https://github.com/A-linna/netty-study/blob/main/src/main/resources/image/byteBuf.png?raw=true)
 
 1. capacity byteByf(容量) 可以容纳的字节数
@@ -464,14 +464,14 @@ PooledUnsafeDirectByteBuf(ridx: 0, widx: 0, cap: 10)
 3. 写指针,写指针到容量区域 称为 可写区域
 4. 读指针，读指针到写指针的区域称为 可读区域，已读的部分称为废弃区域
 
-##### 3.5.5 扩容
+##### 5 扩容
 容量不够时 会触发扩容  
 扩容规则：  
 -  如果写入后数据大小未超过 512，则选择下一个 16 的整数倍，例如写入后大小为 12，则扩容后 capacity 是16
 -  如果写入后数据大小超过 512，则选择下一个2^n，例如写入后大小为 513，则扩容后 capacity 是2^10=1024 (2^9=512 已经不够了)
 -  扩容不能超过 max capacity 否则会报错
 
-##### 3.5.6 retain、release
+##### 6 retain、release
 由于 Netty 中有堆外内存的 ByteBuf 实现，堆外内存最好是手动来释放，而不是等 GC 垃圾回收。
 -  UnpooledHeapByteBuf 使用的是JVM 内存，只需等 GC 回收内存即可
 -  UnpooledDirectByteBuf 使用的就是直接内存了，需要特殊的方法来回收内存
@@ -488,5 +488,306 @@ Netty 这里采用了引用计数法来控制回收内存，每个 ByteBuf都实
 因为 pipeline 的存在，一般需要将BvteBuf 传递给下一个ChannelHandler，如果在 finally中release了，就失去了传递性(当然，如果在这个 ChannelHandler 内这个ByteBuf 已完成了它的使命，那么便无须再传递)
 基本规则是，谁是最后使用者，谁负责 release  
 
-##### 3.6.7 slice
+##### 7 slice
 [零拷贝] 的体现之一，对原始 BvteBuf 进行切片成多个 ByteBuf，切片后的 ByteBuf 并没有发生内存复制，还是使用原始 ByteBuf 的内存，切片后的 ByteBuf 维护独立的 read，write 指针
+![](https://github.com/A-linna/netty-study/blob/main/src/main/resources/image/slice.png?raw=true)
+```
+	ByteBuf buf = ByteBufAllocator.DEFAULT.buffer(10);
+	buf.writeBytes(new byte[]{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'});
+     //在切片过程中，没有发生数据复制
+    ByteBuf buf1 = buf.slice(0, 5);
+```
+注意点：  
+- 切面后获得的byteBuf无法增加容量
+- 原始byteBuf调用release方法释放内存后，切片获得的byteBuf无法使用,若需要使用slice后的buf 可调用retain  
+
+##### 8 duplicate
+[零拷贝] 的体现之一，就好比截取了原始 ByteBuf所有内容，并且没有 max capacity 的限制，也是与原始BvteBuf 使用同一块底层内存，只是读写指针是独立的
+![](https://github.com/A-linna/netty-study/blob/main/src/main/resources/image/duplicate.png?raw=true)
+
+##### 9 copy
+会将底层内存数据进行深拷贝，因此无论读写，都与原始 ByteBuf 无关
+
+##### 10 composite
+将多个byteBuf数据汇总到一个byteBuf中，且没有发生数据复制。
+```
+		ByteBuf buf1 = ByteBufAllocator.DEFAULT.buffer(5);
+        ByteBuf buf2= ByteBufAllocator.DEFAULT.buffer(5);
+        buf1.writeBytes(new byte[]{1,2, 3, 4, 5});
+        buf2.writeBytes(new byte[]{6, 7, 8, 9, 10});
+
+        CompositeByteBuf byteBuf = ByteBufAllocator.DEFAULT.compositeBuffer();
+        byteBuf.addComponents(true, buf1, buf2);
+```
+
+##### ByteBuf的优势
+-  池化-可以重用池中 ByteBuf 实例，更节约内存，减少内存溢出的可能
+-  读写指针分离，不需要像 ByteBuffer 一样切换读写模式可以自动扩容
+-  支持链式调用，使用更流畅
+-  很多地方体现零拷贝，例如 slice、duplicate、CompositeByteBuf
+
+
+* * *
+## 三 netty进阶
+### 粘包 拆包
+#### 1 TCP协议
+- TCP 以一个段 (segment) 为单位，每发送一个段就需要进行一次确认应答 (ack) 处理，但如果这么做，缺点是包的往返时间越长性能就越差
+- 为了解决此问题，引入了窗口概念，窗口大小即决定了无需等待应答而可以继续发送的数据最大值
+![](https://github.com/A-linna/netty-study/blob/main/src/main/resources/image/tpc%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3.png?raw=true)
+
+- 窗口实际就起到一个缓冲区的作用，同时也能起到流量控制的作用
+- 当应答未到达前，窗口必须停止滑动
+- 如果 1001~2000 这个段的数据 ack 回来了，窗口就可以向前滑动
+- 接收方也会维护一个窗口，只有落在窗口内的数据才能允许接收  
+
+本质原因是因为TCP是流式协议，消息无边界  
+
+#### 2.协议的设计与解析
+**redis协议：**
+```
+package com.mikasa.netty.protocol;
+
+import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
+
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+
+/**
+ * 规范格式
+ * 1、间隔符号，在Linux下是\r\n，在Windows下是\n;
+ * 2、简单字符串 Simple Strings, 以 "+"加号 开头;
+ * 3、错误 Errors, 以"-"减号 开头;
+ * 4、整数型 Integer， 以 ":" 冒号开头;
+ * 5、大字符串类型 Bulk Strings, 以 "$"美元符号开头，长度限制512M;
+ * 6、数组类型 Arrays，以 "*"星号开头。
+ * @author aiLun
+ * @date 2023/5/30-10:05
+ */
+public class TestRedis {
+    /**
+     *  set key value
+     *  传输数组类型 先传数组个数 然后发送每个命令以及键值的长度,每个之间要用间隔符号分割
+     *  *3 数组的个数
+     *  $3
+     *  set
+     *  $key的长度
+     *  key
+     *  $value的长度
+     *  value
+     */
+
+    public static void main(String[] args)  {
+        final byte[] LINE = {13, 10}; //回车 + 换行
+        NioEventLoopGroup work = new NioEventLoopGroup();
+        try {
+            Bootstrap bootstrap = new Bootstrap()
+                    .channel(NioSocketChannel.class)
+                    .group(work)
+                    .handler(new ChannelInitializer<SocketChannel>() {
+                        @Override
+                        protected void initChannel(SocketChannel ch) throws Exception {
+                            ch.pipeline().addLast(new LoggingHandler(LogLevel.DEBUG));
+                            ch.pipeline().addLast(new ChannelInboundHandlerAdapter(){
+                                @Override
+                                public void channelActive(ChannelHandlerContext ctx) throws Exception {
+                                    // 发送 set name zhangsan
+                                    ByteBuf buffer = ctx.alloc().buffer();
+                                    buffer.writeBytes("*3".getBytes());
+                                    buffer.writeBytes(LINE);
+                                    buffer.writeBytes("$3".getBytes());
+                                    buffer.writeBytes(LINE);
+                                    buffer.writeBytes("set".getBytes());
+                                    buffer.writeBytes(LINE);
+                                    buffer.writeBytes("$4".getBytes());
+                                    buffer.writeBytes(LINE);
+                                    buffer.writeBytes("name".getBytes());
+                                    buffer.writeBytes(LINE);
+                                    buffer.writeBytes("$8".getBytes());
+                                    buffer.writeBytes(LINE);
+                                    buffer.writeBytes("zhangsan".getBytes());
+                                    buffer.writeBytes(LINE);
+                                    ctx.writeAndFlush(buffer);
+                                }
+
+                                @Override
+                                public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+                                    ByteBuf buf = (ByteBuf)msg;
+                                    System.out.println(buf.toString(StandardCharsets.UTF_8));
+                                }
+                            });
+                        }
+                    });
+            ChannelFuture future = bootstrap.connect(new InetSocketAddress("localhost", 6379)).sync();
+            future.channel().closeFuture().sync();
+        } catch (InterruptedException e) {
+
+        }
+    }
+}
+
+```  
+**http协议**
+```
+package com.mikasa.netty.protocol;
+
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.http.*;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * @author aiLun
+ * @date 2023/5/30-10:36
+ */
+@Slf4j
+public class TestHttp {
+    public static void main(String[] args) {
+        NioEventLoopGroup boos = new NioEventLoopGroup();
+        NioEventLoopGroup word = new NioEventLoopGroup();
+        try {
+        ServerBootstrap bootstrap = new ServerBootstrap()
+                .group(boos, word)
+                .channel(NioServerSocketChannel.class)
+                .childHandler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    protected void initChannel(SocketChannel ch) throws Exception {
+                        ch.pipeline().addLast(new LoggingHandler(LogLevel.DEBUG));
+                        //添加http协议 编解码器
+                        ch.pipeline().addLast(new HttpServerCodec());
+                        ch.pipeline().addLast(new SimpleChannelInboundHandler<DefaultHttpRequest>() {
+                            @Override
+                            protected void channelRead0(ChannelHandlerContext ctx, DefaultHttpRequest msg) throws Exception {
+                                String uri = msg.uri();
+                                log.info("uri:{}", uri);
+                                DefaultFullHttpResponse response = new DefaultFullHttpResponse(msg.protocolVersion(), HttpResponseStatus.OK);
+                                byte[] bytes = "<h1>hello word</h1>".getBytes();
+                                response.content().writeBytes(bytes);
+                                response.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, bytes.length);
+                                ctx.writeAndFlush(response);
+                            }
+                        });
+                    }
+                });
+
+            ChannelFuture future = bootstrap.bind(8080).sync();
+            future.channel().closeFuture().sync();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }finally {
+            boos.shutdownGracefully();
+            word.shutdownGracefully();
+        }
+    }
+}
+
+
+```
+
+##### 2.2 自定义协议要素
+-  魔数，用来在第一时间判定是否是无效数据包
+-  版本号，可以支持协议的升级
+-  序列化算法，消息正文到底采用哪种序列化反序列化方式，可以由此扩展，例如: ison、protobuf、hessian、jdk
+-  指令类型，是登录、注册、单聊、群聊...跟业务相关
+-  请求序号，为了双工通信，提供异步能力
+-  正文长度
+-  消息正文  
+
+```java
+package com.mikasa.netty.protocol;
+
+import com.mikasa.netty.protocol.message.Message;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.ByteToMessageCodec;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.List;
+
+/**
+ * @author aiLun
+ * @date 2023/5/30-15:25
+ */
+@Slf4j
+public class MessageCodec extends ByteToMessageCodec<Message> {
+    @Override
+    protected void encode(ChannelHandlerContext ctx, Message msg, ByteBuf out) throws Exception {
+        //1  4个字节的魔数
+        out.writeBytes(new byte[]{'a', 'b', 'c', 'd'});
+        // 2  1字节的协议版本号
+        out.writeByte(1);
+        //3  1字节的序列化算法  0 jdk序列化 1 json  2
+        out.writeByte(0);
+        //4  1字节的消息指令类型
+        out.writeByte(msg.getMessageType());
+        //5  4个字节的请求序号
+        out.writeInt(msg.getSequenceId());
+
+        //无意义的字节填充，保持2的整数倍
+        out.writeByte(0xff);
+
+        //6 将msg转换为byte[]
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bos);
+        oos.writeObject(msg);
+        byte[] msgByte = bos.toByteArray();
+        //7 4字节的 消息长度
+        out.writeInt(msgByte.length);
+        //8 写入内容
+
+        out.writeBytes(msgByte);
+    }
+
+    @Override
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+        int magicNum = in.readInt();
+        byte version = in.readByte();
+        byte serializableType = in.readByte();
+        byte messageType = in.readByte();
+        int sequenceId = in.readInt();
+        byte b = in.readByte();//无意义的填充字节
+        int length = in.readInt(); //字节长度
+        byte[] bytes = new byte[length];
+         in.readBytes(bytes,0,length);
+        //jdk序列化
+        Message msg =null;
+        if (0 == serializableType) {
+            ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+            ObjectInputStream ois = new ObjectInputStream(bis);
+             msg = (Message) ois.readObject();
+        }
+        log.info("magicNum:{},version:{},serializableType:{},messageType:{}," +
+                "sequenceId:{},length:{}", magicNum, version, serializableType, messageType, sequenceId, length);
+        log.info("message:{}",msg);
+        out.add(msg);
+    }
+}
+
+```  
+
+##### 2.3 存活检测
+`IdleStateHandler(int readerIdleTimeSeconds, int writerIdleTimeSeconds, int allIdleTimeSeconds)`
+- readerIdleTimeSeconds 读的空闲时间
+- writerIdleTimeSeconds 写的空闲时间
+- allIdleTimeSeconds 读写空闲时间

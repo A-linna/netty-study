@@ -32,7 +32,7 @@ public interface GroupSession {
      * @param name
      * @return
      */
-    Group removeGroup(String name);
+    Group removeGroup(String name,String member);
 
     Set<String> getMembers(String name);
 

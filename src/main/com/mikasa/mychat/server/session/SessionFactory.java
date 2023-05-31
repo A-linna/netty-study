@@ -6,9 +6,11 @@ package com.mikasa.mychat.server.session;
  */
 public class SessionFactory {
 
+    private static final SessionMemoryImpl sessionMemory = new SessionMemoryImpl();
+
     public static Session getSession(String type) {
         if ("memory".equals(type)) {
-            return new SessionMemoryImpl();
+            return sessionMemory;
         }
         throw new IllegalArgumentException();
     }
