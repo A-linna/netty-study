@@ -544,7 +544,7 @@ Netty 这里采用了引用计数法来控制回收内存，每个 ByteBuf都实
 
 #### 2.协议的设计与解析
 **redis协议：**
-```
+```java
 package com.mikasa.netty.protocol;
 
 import io.netty.bootstrap.Bootstrap;
@@ -637,7 +637,7 @@ public class TestRedis {
 
 ```  
 **http协议**
-```
+```java
 package com.mikasa.netty.protocol;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -788,6 +788,41 @@ public class MessageCodec extends ByteToMessageCodec<Message> {
 
 ##### 2.3 存活检测
 `IdleStateHandler(int readerIdleTimeSeconds, int writerIdleTimeSeconds, int allIdleTimeSeconds)`
-- readerIdleTimeSeconds 读的空闲时间
-- writerIdleTimeSeconds 写的空闲时间
-- allIdleTimeSeconds 读写空闲时间
+- readerIdleTimeSeconds 读的空闲时间 当指定时间段内未执行读取时触发 IdleState#READER_IDLE 事件
+- writerIdleTimeSeconds 写的空闲时间 当指定时间段内未执行写入时触发 IdleState#WRITER_IDLE
+- allIdleTimeSeconds 读写空闲时间  当在指定的时间段内未执行读取或写入时 触发 IdleState#ALL_IDLE
+
+实用：在服务端加入一个监听读空闲的handler，超时的断开连接，客户端加入一个写空闲的handler，当触发写空闲时 主动向服务器发送数据，注意点：客户端的空闲时间 要比服务器的短。
+
+服务器： 
+```
+  //6秒内没收到channel的数据 会触发一个IdleState#READER_IDLE 事件
+	ch.pipeline().addLast(new IdleStateHandler(6, 0, 0));
+    ch.pipeline().addLast(new ChannelDuplexHandler() {
+    //用来触发特殊事件
+ 	  @Override
+      public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        IdleStateEvent event = (IdleStateEvent) evt;
+        if (IdleState.READER_IDLE == event.state()) {
+            ctx.channel().close();
+         }
+  	  }
+	 });
+
+```
+
+客户端：  
+```
+//3秒内channel没有写数据 会触发一个IdleState#WRITER_IDLE 事件
+	ch.pipeline().addLast(new IdleStateHandler(0, 3, 0));
+	ch.pipeline().addLast(new ChannelDuplexHandler() {
+        @Override
+        public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+       		 IdleStateEvent event = (IdleStateEvent) evt;
+       		 if (IdleState.WRITER_IDLE == event.state()) {
+       		     PingMessage pingMessage = new PingMessage();
+         	     ctx.writeAndFlush(pingMessage);
+        	}
+        }
+ 	 });
+```
