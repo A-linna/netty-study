@@ -1,5 +1,7 @@
 package com.mikasa.chat.mes;
 
+import com.mikasa.rpc.msg.RpcRequestMessage;
+import com.mikasa.rpc.msg.RpcResponseMessage;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -16,10 +18,10 @@ public abstract class Message implements Serializable {
     public static Map<Integer, Class<? extends Message>> map = new HashMap<>();
 
 
-    private int sequenceId;
-    private int messageType;
+    public Integer sequenceId;
+    public int messageType;
 
-    public static Class<?extends Message>getMessageClass(int messageType) {
+    public static Class<? extends Message> getMessageClass(int messageType) {
         return map.get(messageType);
     }
 
@@ -62,6 +64,9 @@ public abstract class Message implements Serializable {
 
     protected static final int PING = 14;
 
+    protected static final int RPC_MESSAGE_TYPE_REQUEST = 100;
+    protected static final int RPC_MESSAGE_TYPE_RESPONSE = 101;
+
     static {
         map.put(LOGIN_REQUEST_MESSAGE, LoginRequestMessage.class);
         map.put(LOGIN_RESPONSE_MESSAGE, LoginResponseMessage.class);
@@ -78,5 +83,7 @@ public abstract class Message implements Serializable {
         map.put(QUIT_GROUP_REQUEST, GroupQuitRequestMessage.class);
         map.put(QUIT_GROUP_RESPONSE, GroupQuitResponseMessage.class);
         map.put(PING, PingMessage.class);
+        map.put(RPC_MESSAGE_TYPE_REQUEST, RpcRequestMessage.class);
+        map.put(RPC_MESSAGE_TYPE_RESPONSE, RpcResponseMessage.class);
     }
 }

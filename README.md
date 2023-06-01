@@ -826,3 +826,52 @@ public class MessageCodec extends ByteToMessageCodec<Message> {
         }
  	 });
 ```
+
+## 4.优化
+### 1.参数优化
+##### 1.CONNECT_TIMEOUT_MILLIS
+- 属于 SocketChannal参数
+- 用在客户端建立连接时，如果在指定毫秒内无法连接，会抛出 timeout 异常
+- SO TIMEOUT 主要用在阻塞IO，阻塞IO中accept,read等都是无限等待的,如果不希望永远阻塞,使用它调整超时时间
+  
+```java
+	public static void main(String[] args) {
+        NioEventLoopGroup eventLoopGroup = new NioEventLoopGroup();
+        try {
+            Bootstrap bootstrap = new Bootstrap()
+                    .group(eventLoopGroup)
+                    .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 300)
+                    .channel(NioSocketChannel.class)
+                    .handler(new LoggingHandler());
+
+            ChannelFuture channelFuture = bootstrap.connect(new InetSocketAddress("localhost", 8888)).sync();
+            channelFuture.channel().closeFuture().sync();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+           log.debug("timeout");
+        }finally {
+            eventLoopGroup.shutdownGracefully();
+        }
+    }
+
+```
+##### 2.SO_BACKLOG
+-	属于serverSocketChannel参数
+![](https://github.com/A-linna/netty-study/blob/main/src/main/resources/image/tcp.png?raw=true)
+1. 第一次握手，cient发送SYN 到server,状态修改为 SYN_SEND，server 收到，状态改变为 SYN_REVD，并将该请求放入 sync queue 队列
+2. 第二次握手，server 回复SYN +ACK给client，cient收到，状态改变为 ESTABLISHED，并发送ACK给server
+3. 第三次握手，server 收到ACK，状态改变为 ESTABLISHED，将该请求从 sync queue 放入 accept queue
+
+- Lunix2.2以后分别用一下2个参数来控制：
+- sync queue - 半连接队列
+	-  大小通过/proc/sys/net/ipv4/tcp_max_syn_backlog指定，在 syncookies 启用的情况下，逻辑上没有最大值限制，这个设置便被忽略
+- accept queue-全连接队列
+	- 其大小通过/proc/sys/net/core/somaxconn 指定，在使用listen 函数时，内核会根据传入的 backlog参数与系统参数，取二者的较小值
+	- 如果 accpet queue 队列满了，server 将发送一个拒绝连接的错误信息到 client
+
+netty 中可以通过 option(ChannelOption.SO_BACKLOG,值)来设置全连接队列大小
+
+##### 3 ALLOCATOR
+- 属于 SocketChannal 参数
+- 用来分配 ByteBuf，ctx.alloc() 的byteBuf类型
+

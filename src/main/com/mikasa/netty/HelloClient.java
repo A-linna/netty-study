@@ -34,7 +34,7 @@ public class HelloClient {
                 })
                 //connect 是一个异步非阻塞的方法
                 //main线程发起调用，真正执行连接connect是NioEventGroup中的线程
-                .connect(new InetSocketAddress("localhost", 9999));
+                .connect(new InetSocketAddress("localhost", 8080));
         channelFuture.sync()//阻塞方法 直到连接建立
                 .channel()//代表连接对象
                 .writeAndFlush("hello");
