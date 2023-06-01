@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * @date 2023/5/30-16:24
  */
 @Slf4j
-public class CharClient {
+public class ChatClient {
     public static void main(String[] args) {
         NioEventLoopGroup work = new NioEventLoopGroup();
         LoggingHandler LOGIN_HANDLER = new LoggingHandler(LogLevel.DEBUG);
@@ -56,7 +56,12 @@ public class CharClient {
                                     IdleStateEvent event = (IdleStateEvent) evt;
                                     if (IdleState.WRITER_IDLE == event.state()) {
                                         PingMessage pingMessage = new PingMessage();
-                                        ctx.writeAndFlush(pingMessage);
+                                        ChannelFuture channelFuture = ctx.writeAndFlush(pingMessage);
+                                        channelFuture.addListener((ChannelFutureListener) listener -> {
+                                            if (!listener.isSuccess()) {
+                                                log.error("event", listener.cause());
+                                            }
+                                        });
                                     }
                                 }
                             });
@@ -83,7 +88,12 @@ public class CharClient {
                                         System.out.println("请输入密码");
                                         String password = scanner.nextLine();
                                         LoginRequestMessage loginRequest = new LoginRequestMessage(username, password);
-                                        ctx.channel().writeAndFlush(loginRequest);
+                                        ChannelFuture channelFuture = ctx.channel().writeAndFlush(loginRequest);
+                                        channelFuture.addListener((ChannelFutureListener) listener -> {
+                                            if (!listener.isSuccess()) {
+                                                log.error("writeError", listener.cause());
+                                            }
+                                        });
                                         try {
                                             WAIT_FOR_LOGIN.await();
                                         } catch (InterruptedException e) {

@@ -18,7 +18,7 @@ public abstract class Message implements Serializable {
     public static Map<Integer, Class<? extends Message>> map = new HashMap<>();
 
 
-    public Integer sequenceId;
+    public int sequenceId;
     public int messageType;
 
     public static Class<? extends Message> getMessageClass(int messageType) {
