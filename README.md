@@ -1,4 +1,4 @@
-### [学习笔记](https://github.com/A-linna/netty-study/wiki)
+# [笔记链接](https://github.com/A-linna/netty-study/wiki)
 
 ### 项目代码包含NIO、Netty组件等使用案例，在chat包下 搭建了一个简单的聊天系统：
 - 主要学习使用ProtocolFrameCodec解决 粘包、拆包问题
